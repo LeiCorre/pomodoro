@@ -2,14 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './App.css';
 
-let globalSeconds = 0;
-let sC = 1500
-let bC = 300
-
+let globalSeconds = 0; //partially inspired by answer on stack overflow (setting the variable to null)
 let event = new Event('sound')
 
 
-function ti (e) {
+function ti (e) { //pausing timer partially inspired by answer on stack overflow (setting variable to null after calling clearInterval)
   if (globalSeconds === 0) {
     return globalSeconds = window.setInterval(e, 1000)
    }
@@ -70,15 +67,13 @@ class Pomodoro extends React.Component {
       this.setState({
         negSec: this.state.negSec -60
       })
-      bC +=60
-  }
+       }
 
   decBreak(event) {
     if(this.state.negSec <= -120)
       this.setState({
         negSec: this.state.negSec +60
       })
-    bC +=60
   }
 
   reset(event) {
@@ -90,30 +85,27 @@ class Pomodoro extends React.Component {
 
     clearInterval(globalSeconds)
     globalSeconds = 0;
-    bC= 300
+    document.getElementById('beep').pause() //attributed to stack overflow answer linked to
+    document.getElementById('beep').currentTime = 0 //attributed to stack overflow answer linked to
     }
  
 
   ss(event) {    
     if (this.state.sec > this.state.negSec -2)
-          this.setState({ sec: this.state.sec - 1 });  
-          sC--;
+          this.setState({ sec: this.state.sec - 1 });
     }
 
-  
-
-  
   count(event) { 
     ti(this.ss)  
     
-  if(this.state.sec === (this.state.negSec-1)) {
-    this.setState({ sec: this.state.session })
-    ti(this.ss)  
+    if(this.state.sec === (this.state.negSec-1)) {
+      this.setState({ sec: this.state.session })
+      ti(this.ss)  
   }
   }
 
   sound(event) {
-    if(this.state.sec === 0)
+    if(this.state.sec === 0 || this.state.sec === this.state.negSec-2)
     document.getElementById('beep').play()
   }
 
@@ -129,10 +121,9 @@ class Pomodoro extends React.Component {
         
         <h1>Pomodoro Clock</h1>  
         <div id="start_stop" onClick={this.count}>&#x25B6;&#x23f8;</div> <br />
-        <h3>{this.state.sec}:{this.state.negSec}</h3>
         <div id="conBox">
         <div id='timer-label'>{this.state.sec > -1? "Session" : this.state.sec === this.state.negSec-2? "Session" : "Break"}
-        <audio src="https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3" id="beep"></audio>
+        <audio src="https://raw.githubusercontent.com/LeiCorre/pomodoro/master/src/Clock.mp3" id="beep"></audio>
     <div id='time-left'>
       {this.state.sec >-1? 
         <div id="ses">
@@ -184,7 +175,11 @@ class Pomodoro extends React.Component {
         </div>
         <div className='col' />
         </div>
-
+        <br /><br />
+        <h3>Designed and Coded by LeiCorre</h3>
+        <h5>With reference to <a href="https://stackoverflow.com/questions/13243235/html5-audio-how-to-quickly-stop-and-restart-a-clip">Here</a> for Resetting an Audio Clip
+        And the <a href="https://stackoverflow.com/">Stack Overflow</a> in regard to making clearInterval work</h5>
+        <h5>Digital Dream font by Jakob Fischer @ <a href="http://pizzadude.dk/site/">Pizzadude.dk</a></h5>
         </div>
 
       
