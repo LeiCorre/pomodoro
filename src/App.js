@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom';
 import './App.css';
 
 let globalSeconds = 0;
-let breakS = 0;
+let sC = 1500
+let bC = 300
 
-let breakM = 0; //marked for deletion
+let event = new Event('sound')
+
 
 function ti (e) {
   if (globalSeconds === 0) {
@@ -17,30 +19,14 @@ function ti (e) {
   }
   
   
-function br (e, m) {
-  if (breakS === 0) {
-    return breakS = window.setInterval(e, 1000)
-   }
-   
-   if (breakM === 0) { //marked for deletion, some weird error
-    return breakM = window.setInterval(m, 60000)
-  }
-
-  clearInterval(breakS)
-  breakS = 0;
-  } 
-
-
-
 
 class Pomodoro extends React.Component {
   constructor(props) {
     super(props);
     this.state= {
       session: 1500,
-      break: 300,
       sec: 1500,
-      breakSec: 300
+      negSec: -300,
     }
     
     
@@ -51,17 +37,22 @@ class Pomodoro extends React.Component {
     this.reset = this.reset.bind(this);
     this.ss = this.ss.bind(this);
     this.count = this.count.bind(this);
-    this.brCount = this.brCount(this)
-    this.bs = this.bs.bind(this);
-    this.final = this.final.bind(this)
+    this.sound = this.sound.bind(this);
     }
 
+ componentDidMount() {
+   document.addEventListener('flip', e => {if(this.state.sec === this.state.negSec-1)
+   alert('hello')})
+   document.dispatchEvent(event)
+ }
+ 
   increment(event) {
     if(this.state.session <= 3540)
     this.setState({ 
       session: this.state.session + 60,
       sec: this.state.sec + 60
      })
+    
   }
 
   
@@ -71,108 +62,98 @@ class Pomodoro extends React.Component {
         session: this.state.session - 60,
         sec: this.state.sec - 60
        })
+       
   }
 
   incBreak(event) {
-    if(this.state.break <= 3540)
-      this.setState({ 
-        break: this.state.break + 60,
-        breakSec: this.state.breakSec + 60
+    if(this.state.negSec >= -3540)
+      this.setState({
+        negSec: this.state.negSec -60
       })
+      bC +=60
   }
 
   decBreak(event) {
-    if(this.state.break >=120)
-    this.setState({
-      break: this.state.break - 60,
-      breakSec: this.state.breakSec - 60
-    })
+    if(this.state.negSec <= -120)
+      this.setState({
+        negSec: this.state.negSec +60
+      })
+    bC +=60
   }
 
   reset(event) {
     this.setState({
       session: 1500,
-      break: 300,
-      sec: 1500,
-      breakSec: 300
+      negSec: -300,
+      sec: 1500
     })
 
     clearInterval(globalSeconds)
     globalSeconds = 0;
-    clearInterval(breakS)
-    breakS = 0;
+    bC= 300
     }
  
 
-  ss(event) {
-    
-    if (this.state.sec > -1)
+  ss(event) {    
+    if (this.state.sec > this.state.negSec -2)
           this.setState({ sec: this.state.sec - 1 });  
+          sC--;
     }
-
-  bs(event) {
-    if (this.state.breakSec > 0)
-      this.setState({ breakSec: this.state.breakSec - 1 }); 
-  }
 
   
 
   
   count(event) { 
     ti(this.ss)  
-    if (this.state.sec === 0) {
-     this.brCount()
-    }
-  
+    
+  if(this.state.sec === (this.state.negSec-1)) {
+    this.setState({ sec: this.state.session })
+    ti(this.ss)  
+  }
   }
 
-  brCount(event) {
-    br(this.bs)
-   if (this.state.breakSec ===0) {
-     this.final()
-   }
-   
-
-
+  sound(event) {
+    if(this.state.sec === 0)
+    document.getElementById('beep').play()
   }
-
-  final(event) {
-    this.setState({
-      sec: this.state.session
-    })
-  }
-  
-
 
   render() {
+    
+      document.addEventListener('sound', this.sound)
+      document.dispatchEvent(event)
+ 
+
     return (
       
         <div className="container-fluid">
         
         <h1>Pomodoro Clock</h1>  
         <div id="start_stop" onClick={this.count}>&#x25B6;&#x23f8;</div> <br />
-        <h3>{this.state.breakSec}</h3>
-        
-        
+        <h3>{this.state.sec}:{this.state.negSec}</h3>
         <div id="conBox">
-        <div id='timer-label'>{this.state.sec !== -1? "Session" : "Break"}
-
+        <div id='timer-label'>{this.state.sec > -1? "Session" : this.state.sec === this.state.negSec-2? "Session" : "Break"}
+        <audio src="https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3" id="beep"></audio>
     <div id='time-left'>
-      {this.state.sec !==-1? 
+      {this.state.sec >-1? 
         <div id="ses">
           {((this.state.sec - (this.state.sec % 60))/60) <10? 
           '0'+ (this.state.sec - (this.state.sec % 60))/60 : (this.state.sec - (this.state.sec % 60))/60}
           :
           {(this.state.sec % 60) < 10? 
           '0'+this.state.sec % 60: this.state.sec % 60}
-      </div> : <div>
-      {((this.state.breakSec - (this.state.breakSec % 60))/60) <10? 
-          '0'+ (this.state.breakSec - (this.state.breakSec % 60))/60 : (this.state.breakSec - (this.state.breakSec % 60))/60}
+      </div> : this.state.sec === this.state.negSec-2? 
+      <div>{((this.state.session - (this.state.session % 60))/60) <10? 
+        '0'+ (this.state.session - (this.state.session % 60))/60 : (this.state.session - (this.state.session % 60))/60}:00</div>
+      :
+      <div id="ses2">
+          {(((this.state.sec + 1 + this.state.negSec*-1) - ((this.state.sec + 1 + this.state.negSec*-1) % 60))/60) <10? 
+          '0'+ ((this.state.sec + 1 + this.state.negSec*-1) - ((this.state.sec + 1 + this.state.negSec*-1) % 60))/60 : ((this.state.sec + 1 + this.state.negSec*-1) - ((this.state.sec + 1 + this.state.negSec*-1) % 60))/60}
           :
-          {(this.state.breakSec % 60) < 10? 
-          '0'+this.state.breakSec % 60: this.state.breakSec % 60}
-          
-      </div>}
+          {((this.state.sec + 1 + this.state.negSec*-1) % 60) < 10? 
+          '0'+(this.state.sec + 1 + this.state.negSec*-1) % 60: (this.state.sec + 1 + this.state.negSec*-1) % 60}
+      </div>
+      
+      }
       
     </div>
     
@@ -182,8 +163,7 @@ class Pomodoro extends React.Component {
         
         <div className="row">
           <div className='col' >
-            
-            
+          
           </div>
           <div className='col-xl-3'>
         <div id="session-label">Session Length</div>
@@ -199,7 +179,7 @@ class Pomodoro extends React.Component {
         <div id="break-label">Break Length</div>
         
         <span id="break-decrement" className="but btn btn-light" onClick={this.decBreak}> &#9664; </span> &nbsp;
-        <span id="break-length">{this.state.break/60}</span> &nbsp;
+        <span id="break-length">{this.state.negSec/-60}</span> &nbsp;
         <span id="break-increment" className="but btn btn-light" onClick={this.incBreak}>  &#9658; </span>
         </div>
         <div className='col' />
